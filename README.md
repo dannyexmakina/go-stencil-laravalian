@@ -8,6 +8,10 @@ Laravel経験者がGoでWebアプリを書き始めるためのステンシル�
 
 この構成は「Laravelでの思考習慣を保ったままGoを書き始められること」を優先しています。Goに慣れてきたら、本来の慣習に寄せていくことを推奨します。
 
+## 移行ガイド
+
+Laravelの各機能がGoで何に相当するかは [docs/](docs/README.md) に機能ごとにまとめています。
+
 ## ディレクトリ構造
 
 ```
@@ -28,14 +32,16 @@ Laravel経験者がGoでWebアプリを書き始めるためのステンシル�
 │   └── constants/      # アプリ横断の定数
 ├── config/             # 設定 (envconfig)
 ├── routes/             # ルーティング定義
-└── migrations/         # マイグレーション (Goose or golang-migrate)
+├── migrations/         # マイグレーション (Goose、SQLはバイナリに埋め込み)
+├── docs/               # Laravel → Go 移行ガイド
+└── build/              # ビルド成果物の出力先（git管理外）
 ```
 
 ## 想定ライブラリ
 
 - Echo（ルーティング）
 - GORM（ORM）
-- Goose または golang-migrate（マイグレーション、選択制）
+- Goose（マイグレーション）
 - Cobra（CLI）
 - robfig/cron（スケジューラー）
 - asynq（ジョブキュー）
@@ -44,6 +50,28 @@ Laravel経験者がGoでWebアプリを書き始めるためのステンシル�
 - go-playground/validator（バリデーション）
 - air（ホットリロード）
 
+## 動かし方
+
+```sh
+cp .env.example .env
+go run ./cmd/console migrate      # テーブル作成（goose up）
+go run ./cmd/server               # http://localhost:8080/ , GET/POST /users
+go run ./cmd/console greet Taylor # Cobraコマンド
+go run ./cmd/scheduler            # 毎分ログを出すcron
+go run ./cmd/worker               # asynqワーカー（要Redis）
+```
+
+サンプルのDBはcgo不要のSQLite（glebarez/sqlite）です（MySQL / PostgreSQL への切り替えは [docs/14-database.md](docs/14-database.md)）。テーブルは `migrations/` のSQLをGooseで適用して作成します。
+
+## Makefile
+
+| コマンド | 内容 |
+| --- | --- |
+| `make build` | `cmd/` 以下の全バイナリ（server / console / scheduler / worker）を `build/` に出力 |
+| `make dev` | air でサーバーをホットリロード起動（出力先は `build/server`）。air 未導入なら `go run github.com/air-verse/air@latest` で代用 |
+| `make migrate` | マイグレーションを実行（`ARGS=down` でロールバック、`ARGS=status` で状態確認） |
+| `make clean` | `build/` の中身を削除（`.gitkeep` は残す） |
+
 ## ステータス
 
-構造のみ。中身の実装はこれから。
+ごく簡単なサンプル実装のみ。

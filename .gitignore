@@ -31,3 +31,8 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# build output / sqlite
+*.sqlite
+build/*
+!.gitkeep
