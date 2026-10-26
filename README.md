@@ -75,3 +75,7 @@ go run ./cmd/worker               # asynqワーカー（要Redis）
 ## ステータス
 
 ごく簡単なサンプル実装のみ。
+
+## ライセンス
+
+[MIT](LICENSE)
